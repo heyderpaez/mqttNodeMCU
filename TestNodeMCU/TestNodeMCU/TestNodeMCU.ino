@@ -32,12 +32,7 @@ void reconnect() {
   while (!tb.connected()) {
     status = WiFi.status();
     if ( status != WL_CONNECTED) {
-      WiFi.begin(WIFI_AP, WIFI_PASSWORD);
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-      }
-      Serial.println("Connected to AP");
+      InitWiFi();
     }
     Serial.print("Connecting to ThingsBoard node ...");
     if ( tb.connect(thingsboardServer, TOKEN) ) {
