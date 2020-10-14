@@ -39,7 +39,11 @@ void setup() {
   else{
     Serial.print("Conectado a la aplicación :");
     Serial.println(host);
-    sendPost(15);
+    String tabla = "consumo";
+    String lugar = "sala";
+    float corriente = random(0,50)/10;
+    float voltaje = random(1100,1250)/10;
+    sendPost(tabla, corriente, voltaje, lugar);
   }
 }
 
@@ -63,12 +67,13 @@ if (client.available()) {
 
 }
 
-void sendPost(int input){
+sendPost(tabla, corriente, voltaje, lugar);
+void sendPost(String tabla, float corriente, float voltaje, String lugar){
   //Creamos la direccion para luego usarla
-  String dato = "DatoCorrecto=" + String(input);
-
+  String dato = "tabla=" + String(tabla) + "&corriente=" + String(corriente) + "&voltaje=" + String(voltaje) + "&lugar=" + String(lugar);
+ 
   // Solicitud de tipo post para enviar al servidor 
-  client.println("POST /modificarDato HTTP/1.1");
+  client.println("POST /guardarConsumo HTTP/1.1");
   client.println("Host: githubdemostracion.herokuapp.com");
   client.println("Cache-Control: no-cache");
   client.println("Content-Type: application/x-www-form-urlencoded");
