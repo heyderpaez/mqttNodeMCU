@@ -67,7 +67,6 @@ if (client.available()) {
 
 }
 
-sendPost(tabla, corriente, voltaje, lugar);
 void sendPost(String tabla, float corriente, float voltaje, String lugar){
   //Creamos la direccion para luego usarla
   String dato = "tabla=" + String(tabla) + "&corriente=" + String(corriente) + "&voltaje=" + String(voltaje) + "&lugar=" + String(lugar);
