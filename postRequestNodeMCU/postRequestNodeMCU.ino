@@ -31,48 +31,52 @@ void setup() {
   Serial.println(WiFi.SSID()); 
   Serial.print("IP address:\t");
   Serial.println(WiFi.localIP());
-  
-
-  if(!client.connect(host,httpPort)){
-    Serial.println("Conexion fallida");  
-  }
-  else{
-    Serial.print("Conectado a la aplicación :");
-    Serial.println(host);
-    String tabla = "consumo";
-    String lugar = "sala";
-    float corriente = random(0,50)/10;
-    float voltaje = random(1100,1250)/10;
-    sendPost(tabla, corriente, voltaje, lugar);
-  }
 }
+
+
+unsigned long t_ultimoEnvio = 0;
 
 // the loop function runs over and over again forever
 void loop() {
+
+  //if (t_ultimoEnvio + 5000 >= 4294967295) { t_ultimoEnvio = 0; }
+  
+  if ( (millis() - t_ultimoEnvio) >= 5000){
+    if(!client.connect(host,httpPort)){
+      Serial.println("Conexion fallida");  
+    }
+    else{
+      Serial.print("Conectado a la aplicación :");
+      Serial.println(host);
+      String tabla = "consumo";
+      String lugar = "sala";
+      float corriente = random(0,50)/10;
+      float voltaje = random(1100,1250)/10;
+      sendConsumo(tabla, corriente, voltaje, lugar);
+      t_ultimoEnvio = millis();
+    }
+  }
+  
 if (client.available()) {
     char c = client.read();
     Serial.print(c);
   }
 
-  // if the server's disconnected, stop the client:
-  if (!client.connected()) {
-    Serial.println();
-    Serial.println("disconnecting.");
-    client.stop();
-
-    // do nothing forevermore:
-    for(;;)
-      ;
+  if ( (millis() - t_ultimoEnvio) >= 100000){
+    if (!client.connected()) {
+      Serial.println();
+      Serial.println("disconnecting.");
+      client.stop();
+    }
   }
-
 }
 
-void sendPost(String tabla, float corriente, float voltaje, String lugar){
+void sendConsumo(String tabla, float corriente, float voltaje, String lugar){
   //Creamos la direccion para luego usarla
   String dato = "tabla=" + String(tabla) + "&corriente=" + String(corriente) + "&voltaje=" + String(voltaje) + "&lugar=" + String(lugar);
  
   // Solicitud de tipo post para enviar al servidor 
-  client.println("POST /guardarConsumo HTTP/1.1");
+  client.println("POST /guardarDato HTTP/1.1");
   client.println("Host: githubdemostracion.herokuapp.com");
   client.println("Cache-Control: no-cache");
   client.println("Content-Type: application/x-www-form-urlencoded");
