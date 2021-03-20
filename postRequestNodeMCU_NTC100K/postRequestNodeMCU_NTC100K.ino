@@ -1,13 +1,17 @@
 #include <ESP8266WiFi.h>
 
+
 WiFiClient client;
 
-const char* ssid     = "your_SSID";
-const char* password = "your_Password";
+#define PERIODO_ENVIO 5000  // Periodo de envío en milisegundos
+
+const char* ssid     = "HP_NETWORK";
+const char* password = "PerroAmarilloGatoNegro";
 
 //HOST o URL de su aplicación web sin http
 const char* host ="githubdemostracion.herokuapp.com";
 const int httpPort = 80; // puerto web por defecto: 80
+unsigned long t_ultimoEnvio = 0;
 
 void setup() {
  Serial.begin(115200);
@@ -21,7 +25,7 @@ void setup() {
   // Esperar a que nos conectemos
   while (WiFi.status() != WL_CONNECTED) 
   {
-    delay(200);
+   delay(200);
    Serial.print('.');
   }
  
@@ -34,14 +38,9 @@ void setup() {
 }
 
 
-unsigned long t_ultimoEnvio = 0;
-
 // the loop function runs over and over again forever
 void loop() {
-
-  //if (t_ultimoEnvio + 5000 >= 4294967295) { t_ultimoEnvio = 0; }
-  
-  if ( (millis() - t_ultimoEnvio) >= 5000){
+  if ( (millis() - t_ultimoEnvio) >= PERIODO_ENVIO){
     if(!client.connect(host,httpPort)){
       Serial.println("Conexion fallida");  
     }
@@ -50,9 +49,15 @@ void loop() {
       Serial.println(host);
       String tabla = "consumo";
       String lugar = "sala";
-      float corriente = random(0,50)/10;
-      float voltaje = random(1100,1250)/10;
-      sendConsumo(tabla, corriente, voltaje, lugar);
+
+      Serial.print("Temperatura: ");
+      int val; //Crea una variable entera
+      double temperatura;//Variable de temperatura = temp
+      val=analogRead(A0);//Lee el valor del pin analogo 0 y lo mantiene como val
+      temperatura=Thermister(val);//Realiza la conversión del valor analogo a grados Celsius
+      Serial.println(temperatura);//Escribe la temperatura en el monitor serial
+      
+      //sendTemperatura(tabla, temperatura, lugar);
       t_ultimoEnvio = millis();
     }
   }
@@ -71,12 +76,12 @@ if (client.available()) {
   }
 }
 
-void sendConsumo(String tabla, float corriente, float voltaje, String lugar){
+void sendTemperatura(String tabla, float temperatura, String lugar){
   //Creamos la direccion para luego usarla
-  String dato = "tabla=" + String(tabla) + "&corriente=" + String(corriente) + "&voltaje=" + String(voltaje) + "&lugar=" + String(lugar);
+  String dato = "tabla=" + String(tabla) + "&temperatura=" + String(temperatura) + "&lugar=" + String(lugar);
  
   // Solicitud de tipo post para enviar al servidor 
-  client.println("POST /guardarDato HTTP/1.1");
+  client.println("POST /postTemperatura HTTP/1.1");
   client.println("Host: githubdemostracion.herokuapp.com");
   client.println("Cache-Control: no-cache");
   client.println("Content-Type: application/x-www-form-urlencoded");
@@ -85,4 +90,13 @@ void sendConsumo(String tabla, float corriente, float voltaje, String lugar){
   client.println();
   client.println(dato);
   Serial.println("Respuesta: ");
+}
+
+double Thermister(int RawADC) {  
+double Temp;
+Temp = log(((10240000/RawADC) - 10000));
+Temp = 1 / (0.001129148 + (0.000234125 + (0.0000000876741 * Temp * Temp ))* Temp );
+Temp = Temp - 273.15;// Convierte de Kelvin a Celsius
+//Para convertir Celsius-Farenheith escriba en esta linea:Temp=(Temp*9.0)/ 5.0 + 32.0;
+return Temp;
 }
