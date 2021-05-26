@@ -76,10 +76,16 @@ void consulta(String numero){
 
           DynamicJsonDocument doc(1024);
           deserializeJson(doc, payload);
-          String estado1 = doc["0"]["estado"];
+
+          for(int i=0;i<=1;i++){
+            String estado_c = doc[String(i)]["estado"];
+            Serial.print("Estado plaza ");
+            Serial.print(String(i+1));
+            Serial.print(" :");
+            Serial.println(estado_c);
+          }
           
-          Serial.print("Estado plaza 1: ");
-          Serial.println(estado1);
+
           
         }
       } else {
